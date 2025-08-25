@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Box } from "../../components/Box/Box";
-import { Input } from "../../components/Input/Input";
-import { Layout } from "../../components/Layout/Layout";
+import { Input } from "../../../../components/Input/Input";
 import classes from "./VerifyEmail.module.scss";
-import { Button } from "../../components/Button/Button";
+import { Button } from "../../../../components/Button/Button";
 import { useNavigate } from "react-router-dom";
+import { usePageTitle } from "../../../../hooks/usePageTitle";
+import { useAuthentication } from "../../contexts/AuthenticationContextProvider";
 
 export function VerifyEmail() {
     const [errorMessage, setErrorMessage] = useState("");
@@ -14,6 +15,10 @@ export function VerifyEmail() {
     const [isLoading, setIsLoading] = useState(false);
 
     const navigate = useNavigate();
+
+    const { user, setUser } = useAuthentication();
+
+    usePageTitle("Verify Email");
 
     const validateEmail = async (code: string) => {
         setMessage("");
@@ -30,6 +35,7 @@ export function VerifyEmail() {
             );
             if (response.ok) {
                 setErrorMessage("");
+                setUser({ ...user!, emailVerified: true });
                 navigate("/");
             }
             const { message } = await response.json();
@@ -70,7 +76,7 @@ export function VerifyEmail() {
     };
 
     return (
-        <Layout className={classes.root}>
+        <div className={classes.root}>
             <Box>
                 <h1>Verify your email</h1>
                 <form
@@ -100,6 +106,6 @@ export function VerifyEmail() {
                     </Button>
                 </form>
             </Box>
-        </Layout>
+        </div>
     );
 };

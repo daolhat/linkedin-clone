@@ -102,7 +102,7 @@ public class FeedService {
         return postRepository.save(post);
     }
 
-    
+
     public Comment addComment(Long postId, Long userId, String content) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));

@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from "react";
-import { Layout } from "../../components/Layout/Layout";
 import classes from "./Login.module.scss";
 import { Box } from "../../components/Box/Box";
-import { Input } from "../../components/Input/Input";
-import { Button } from "../../components/Button/Button";
+import { Input } from "../../../../components/Input/Input";
+import { Button } from "../../../../components/Button/Button";
 import { Seperator } from "../../components/Seperator/Seperator";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthentication } from "../../contexts/AuthenticationContextProvider";
+import { usePageTitle } from "../../../../hooks/usePageTitle";
 
 export function Login() {
     const [errorMessage, setErrorMessage] = useState("");
@@ -18,6 +18,8 @@ export function Login() {
     const navigate = useNavigate();
 
     const location = useLocation();
+
+    usePageTitle("Login");
 
     const doLogin = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -41,7 +43,7 @@ export function Login() {
     }
 
     return (
-        <Layout className={classes.root}>
+        <div className={classes.root}>
             <Box>
                 <h1>Sign in</h1>
                 <p>Stay updated on your professional world.</p>
@@ -56,14 +58,14 @@ export function Login() {
                         }
 
                     </Button>
-                    <Link to="/request-password-reset" >Forgot password?</Link>
+                    <Link to="/authentication/request-password-reset" >Forgot password?</Link>
                 </form>
                 <Seperator>Or</Seperator>
                 <div className={classes.register}>
-                    New to LinkedIn? <Link to="/signup">Join now</Link>
+                    New to LinkedIn? <Link to="/authentication/signup">Join now</Link>
                 </div>
             </Box>
-        </Layout>
+        </div>
     );
 
 };
