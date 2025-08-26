@@ -5,6 +5,7 @@ import { Input } from "../../../../components/Input/Input";
 import classes from "./ResetPassword.module.scss"
 import { useState } from "react";
 import { usePageTitle } from "../../../../hooks/usePageTitle";
+import { request } from "../../../../utils/api";
 
 export function ResetPassword() {
     const navigate = useNavigate();
@@ -20,53 +21,33 @@ export function ResetPassword() {
     usePageTitle("Reset Password");
 
     const sendPasswordResetToken = async (email: string) => {
-        try {
-            const response = await fetch(
-                import.meta.env.VITE_API_URL +
-                "/api/v1/authentication/send-password-reset-token?email=" +
-                email,
-                {
-                    method: "PUT",
-                }
-            );
-            if (response.ok) {
+        await request<void>({
+            endpoint: `/api/v1/authentication/send-password-reset-token?email=${email}`,
+            method: "PUT",
+            onSuccess: () => {
                 setErrorMessage("")
                 setEmailSent(true);
-                return;
+            }, 
+            onFailure: (error) => {
+                setErrorMessage(error);
             }
-            const { message } = await response.json();
-            setErrorMessage(message);
-
-        } catch (e) {
-            console.log(e);
-            setErrorMessage("Something went wrong, please try again.");
-        } finally {
-            setIsLoading(false);
-        }
+        }); 
+        setIsLoading(false);
     };
 
     const resetPassword = async (email: string, code: string, password: string) => {
-        try {
-            const response = await fetch(
-                `${import.meta.env.VITE_API_URL
-                }/api/v1/authentication/reset-password?email=${email}&token=${code}&newPassword=${password}`,
-                {
-                    method: "PUT",
-                }
-            );
-            if (response.ok) {
+        await request<void>({
+            endpoint: `/api/v1/authentication/reset-password?email=${email}&token=${code}&newPassword=${password}`,
+            method: "PUT",
+            onSuccess: () => {
                 setErrorMessage("")
                 navigate("/login");
+            }, 
+            onFailure: (error) => {
+                setErrorMessage(error);
             }
-            const { message } = await response.json();
-            setErrorMessage(message);
-
-        } catch (e) {
-            console.log(e);
-            setErrorMessage("Something went wrong, please try again.");
-        } finally {
-            setIsLoading(false);
-        }
+        }); 
+        setIsLoading(false);
     };
 
     return (

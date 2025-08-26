@@ -30,11 +30,6 @@
         align-items: center;
     }
 
-    .date {
-        color: #666;
-        font-size: 0.8rem;
-    }
-
     button.toggle {
         background-color: transparent;
         width: 1.5rem;
@@ -85,6 +80,7 @@
 
     .picture {
         width: 100%;
+        margin-bottom: 1.5rem;
     }
 
     .stats {
@@ -118,6 +114,10 @@
 
             &.active {
                 color: var(--primary-color);
+            }
+
+            &[disabled] {
+                cursor: wait;
             }
         }
     }

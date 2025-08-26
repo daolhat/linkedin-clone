@@ -43,6 +43,7 @@ export function Modal({ setShowModal, showModal, onSubmit, content, picture, tit
 
                         try {
                             await onSubmit(content, picture);
+                            setShowModal(false);
                         } catch (error) {
                             if (error instanceof Error) {
                                 console.error(error.message);
@@ -51,7 +52,6 @@ export function Modal({ setShowModal, showModal, onSubmit, content, picture, tit
                             }
                         } finally {
                             setIsLoading(false);
-                            setShowModal(false);
                         }
                     }}
                 >

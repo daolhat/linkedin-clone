@@ -5,18 +5,17 @@ import {
     useAuthentication,
     type User,
 } from "../../../authentication/contexts/AuthenticationContextProvider";
-import { timeAgo } from "../../utils/date";
 import { Comment } from "../Comment/Comment";
 import { Modal } from "../Modal/Modal";
 import classes from "./Post.module.scss";
+import { TimeAgo } from "../TimeAgo/TimeAgo";
+import { request } from "../../../../utils/api";
 
 export interface Post {
     id: number;
     content: string;
     author: User;
     picture?: string;
-    likes?: User[];
-    comments?: Comment[];
     creationDate: string;
     updatedDate?: string;
 }
@@ -33,66 +32,55 @@ export function Post({ post, setPosts }: PostProps) {
     const { user } = useAuthentication();
     const [showMenu, setShowMenu] = useState(false);
     const [editing, setEditing] = useState(false);
+    const [comments, setComments] = useState<Comment[]>([]);
+    const [likes, setLikes] = useState<User[]>([]);
 
-    const [postLiked, setPostLiked] = useState<boolean>(
-        !!post.likes?.some((like) => like.id === user?.id)
-    );
-
-    useEffect(() => {
-        setPostLiked(!!post.likes?.some((like) => like.id === user?.id));
-    }, [post.likes, user?.id]);
+    const [postLiked, setPostLiked] = useState<boolean | undefined>(undefined);
 
     useEffect(() => {
-        setPosts((prev) => {
-            if (postLiked) {
-                return prev.map((p) => {
-                    if (p.id === post.id) {
-                        return {
-                            ...p,
-                            likes: p.likes ? [user!, ...p.likes] : [user!],
-                        };
-                    }
-                    return p;
-                });
-            } else {
-                return prev.map((p) => {
-                    if (p.id === post.id) {
-                        return {
-                            ...p,
-                            likes: p.likes?.filter((like) => like.id !== user?.id),
-                        };
-                    }
-                    return p;
-                });
-            }
-        });
-    }, [post.id, postLiked, setPosts, user]);
+        const fetchComments = async () => {
+            await request<Comment[]>({
+                endpoint: `/api/v1/feed/posts/${post.id}/comments`,
+                onSuccess: (data) => setComments(data),
+                onFailure: (error) => {
+                    console.error(error);
+                },
+            });
+        };
+        fetchComments();
+    }, [post.id]);
+
+    useEffect(() => {
+        const fetchLikes = async () => {
+            await request<User[]>({
+                endpoint: `/api/v1/feed/posts/${post.id}/likes`,
+                onSuccess: (data) => {
+                    setLikes(data);
+                    setPostLiked(data.some((like) => like.id === user?.id));
+                },
+                onFailure: (error) => {
+                    console.error(error);
+                },
+            });
+        };
+        fetchLikes();
+    }, [post.id, user?.id]);
 
     const like = async () => {
         setPostLiked((prev) => !prev);
-
-        try {
-            const response = await fetch(
-                import.meta.env.VITE_API_URL + "/api/v1/feed/posts/" + post.id + "/like",
-                {
-                    method: "PUT",
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    },
-                }
-            );
-            if (!response.ok) {
-                const { message } = await response.json();
-                throw new Error(message);
-            }
-        } catch (error) {
-            if (error instanceof Error) {
-                console.error(error.message);
-            } else {
-                console.error("An error occurred. Please try again later.");
-            }
-            setPostLiked((prev) => !prev);
-        }
+        await request<Post>({
+            endpoint: `/api/v1/feed/posts/${post.id}/like`,
+            method: "PUT",
+            onSuccess: () => {
+                setLikes((prev) =>
+                    postLiked ? prev.filter((like) => like.id !== user?.id) : [user!, ...prev]
+                );
+            },
+            onFailure: (error) => {
+                console.error(error);
+                setPostLiked((prev) => !prev);
+            },
+        });
     };
 
     const postComment = async (e: FormEvent<HTMLFormElement>) => {
@@ -100,155 +88,88 @@ export function Post({ post, setPosts }: PostProps) {
         if (!content) {
             return;
         }
-        try {
-            const response = await fetch(
-                import.meta.env.VITE_API_URL + "/api/v1/feed/posts/" + post.id + "/comments",
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("token")}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ content }),
-                }
-            );
-            if (!response.ok) {
-                const { message } = await response.json();
-                throw new Error(message);
-            }
-            const data = await response.json();
-            setPosts((prev) =>
-                prev.map((p) => {
-                    if (p.id === post.id) {
-                        return {
-                            ...p,
-                            comments: p.comments ? [data, ...p.comments] : [data],
-                        };
-                    }
-                    return p;
-                })
-            );
-            setContent("");
-        } catch (error) {
-            if (error instanceof Error) {
-                console.error(error.message);
-            } else {
-                console.error("An error occurred. Please try again later.");
-            }
-        }
+        await request<Post>({
+            endpoint: `/api/v1/feed/posts/${post.id}/comments`,
+            method: "POST",
+            body: JSON.stringify({ content }),
+            onSuccess: (data) => {
+                setComments((prev) => [data, ...prev]);
+                setContent("");
+            },
+            onFailure: (error) => {
+                throw new Error(error);
+            },
+        });
     };
 
     const deleteComment = async (id: number) => {
-        try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/feed/comments/${id}`, {
-                method: "DELETE",
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-            });
-
-            if (!res.ok) {
-                const { message } = await res.json();
-                throw new Error(message);
-            }
-            setPosts((prev) =>
-                prev.map((p) => {
-                    if (p.id === post.id) {
-                        return {
-                            ...p,
-                            comments: p.comments?.filter((comment) => comment.id !== id),
-                        };
-                    }
-                    return p;
-                })
-            );
-        } catch (e) {
-            console.error(e);
-        }
+        await request<void>({
+            endpoint: `/api/v1/feed/comments/${id}`,
+            method: "DELETE",
+            onSuccess: () => {
+                setComments((prev) => prev.filter((comment) => comment.id !== id));
+            },
+            onFailure: (error) => {
+                console.error(error);
+            },
+        });
     };
 
     const editComment = async (id: number, content: string) => {
-        try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/feed/comments/${id}`, {
-                method: "PUT",
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ content }),
-            });
-
-            if (!res.ok) {
-                const { message } = await res.json();
-                throw new Error(message);
-            }
-            setPosts((prev) =>
-                prev.map((p) => {
-                    if (p.id === post.id) {
-                        return {
-                            ...p,
-                            comments: p.comments?.map((comment) => {
-                                if (comment.id === id) {
-                                    return {
-                                        ...comment,
-                                        content,
-                                        updatedDate: new Date().toISOString(),
-                                    };
-                                }
-                                return comment;
-                            }),
-                        };
-                    }
-                    return p;
-                })
-            );
-        } catch (e) {
-            console.error(e);
-        }
+        await request<Comment>({
+            endpoint: `/api/v1/feed/comments/${id}`,
+            method: "PUT",
+            body: JSON.stringify({ content }),
+            onSuccess: (data) => {
+                setComments((prev) =>
+                    prev.map((c) => {
+                        if (c.id === id) {
+                            return data;
+                        }
+                        return c;
+                    })
+                );
+            },
+            // setComments((prev) => prev.map((comment) => (comment.id === id ? { ...comment, content } : comment)));
+            onFailure: (error) => {
+                console.error(error);
+            },
+        });
     };
 
     const deletePost = async (id: number) => {
-        try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/feed/posts/${id}`, {
-                method: "DELETE",
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-            });
-
-            if (!res.ok) {
-                const { message } = await res.json();
-                throw new Error(message);
-            }
-            setPosts((prev) => prev.filter((p) => p.id !== id));
-        } catch (e) {
-            console.error(e);
-        }
+        await request<void>({
+            endpoint: `/api/v1/feed/posts/${id}`,
+            method: "DELETE",
+            onSuccess: () => {
+                setPosts((prev) => prev.filter((p) => p.id !== id));
+            },
+            onFailure: (error) => {
+                console.error(error);
+            },
+        });
     };
 
     const editPost = async (content: string, picture: string) => {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/feed/posts/${post.id}`, {
+        await request<Post>({
+            endpoint: `/api/v1/feed/posts/${post.id}`,
             method: "PUT",
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-                "Content-Type": "application/json",
-            },
             body: JSON.stringify({ content, picture }),
+            onSuccess: (data) => {
+                setPosts((prev) =>
+                    prev.map((p) => {
+                        if (p.id === post.id) {
+                            return data;
+                        }
+                        return p;
+                    })
+                );
+                setShowMenu(false);
+            },
+            onFailure: (error) => {
+                throw new Error(error);
+            },
         });
-        if (!res.ok) {
-            const { message } = await res.json();
-            throw new Error(message);
-        }
-        const data = await res.json();
-        setPosts((prev) =>
-            prev.map((p) => {
-                if (p.id === post.id) {
-                    return data;
-                }
-                return p;
-            })
-        );
-        setShowMenu(false);
     };
 
     return (
@@ -284,10 +205,7 @@ export function Post({ post, setPosts }: PostProps) {
                             <div className={classes.title}>
                                 {post.author.position + " at " + post.author.company}
                             </div>
-                            <div className={classes.date}>
-                                {timeAgo(new Date(post.updatedDate || post.creationDate))}
-                                {post.updatedDate ? " . Edited " : ""}
-                            </div>
+                            <TimeAgo date={post.creationDate} edited={!!post.updatedDate} />
                         </div>
                     </div>
                     <div>
@@ -312,14 +230,14 @@ export function Post({ post, setPosts }: PostProps) {
                 <div className={classes.content}>{post.content}</div>
                 {post.picture && <img src={post.picture} alt="" className={classes.picture} />}
                 <div className={classes.stats}>
-                    {post.likes && post.likes.length > 0 ? (
+                    {likes.length > 0 ? (
                         <div className={classes.stat}>
                             <span>
-                                {postLiked ? "You " : post.likes[0].firstName + " " + post.likes[0].lastName + " "}
+                                {postLiked ? "You " : likes[0].firstName + " " + likes[0].lastName + " "}
                             </span>
-                            {post.likes.length - 1 > 0 ? (
+                            {likes.length - 1 > 0 ? (
                                 <span>
-                                    and {post.likes.length - 1} {post.likes.length - 1 === 1 ? "other" : "others"}
+                                    and {likes.length - 1} {likes.length - 1 === 1 ? "other" : "others"}
                                 </span>
                             ) : null}{" "}
                             liked this
@@ -328,16 +246,18 @@ export function Post({ post, setPosts }: PostProps) {
                         <div></div>
                     )}
 
-                    {post.comments && post.comments.length > 0 ? (
+                    {comments.length > 0 ? (
                         <button className={classes.stat} onClick={() => setShowComments((prev) => !prev)}>
-                            <span>{post.comments.length} comments</span>
+                            <span>{comments.length} comments</span>
                         </button>
                     ) : (
                         <div></div>
                     )}
                 </div>
                 <div className={classes.actions}>
-                    <button onClick={like} className={postLiked ? classes.active : ""}>
+                    <button onClick={like} className={postLiked ? classes.active : ""}
+                        disabled={postLiked === undefined}
+                    >
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="currentColor">
                             <path d="M225.8 468.2l-2.5-2.3L48.1 303.2C17.4 274.7 0 234.7 0 192.8l0-3.3c0-70.4 50-130.8 119.2-144C158.6 37.9 198.9 47 231 69.6c9 6.4 17.4 13.8 25 22.3c4.2-4.8 8.7-9.2 13.5-13.3c3.7-3.2 7.5-6.2 11.5-9c0 0 0 0 0 0C313.1 47 353.4 37.9 392.8 45.4C462 58.6 512 119.1 512 189.5l0 3.3c0 41.9-17.4 81.9-48.1 110.4L288.7 465.9l-2.5 2.3c-8.2 7.6-19 11.9-30.2 11.9s-22-4.2-30.2-11.9zM239.1 145c-.4-.3-.7-.7-1-1.1l-17.8-20-.1-.1s0 0 0 0c-23.1-25.9-58-37.7-92-31.2C81.6 101.5 48 142.1 48 189.5l0 3.3c0 28.5 11.9 55.8 32.8 75.2L256 430.7 431.2 268c20.9-19.4 32.8-46.7 32.8-75.2l0-3.3c0-47.3-33.6-88-80.1-96.9c-34-6.5-69 5.4-92 31.2c0 0 0 0-.1 .1s0 0-.1 .1l-17.8 20c-.3 .4-.7 .7-1 1.1c-4.5 4.5-10.6 7-16.9 7s-12.4-2.5-16.9-7z" />
                         </svg>
@@ -368,7 +288,7 @@ export function Post({ post, setPosts }: PostProps) {
                             />
                         </form>
 
-                        {post.comments?.map((comment) => (
+                        {comments.map((comment) => (
                             <Comment
                                 editComment={editComment}
                                 deleteComment={deleteComment}

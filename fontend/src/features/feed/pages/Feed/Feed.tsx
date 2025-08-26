@@ -8,6 +8,7 @@ import { Modal } from "../../components/Modal/Modal.tsx";
 import { Post } from "../../components/Post/Post.tsx";
 import { RightSidebar } from "../../components/RightSidebar/RightSidebar.tsx";
 import classes from "./Feed.module.scss";
+import { request } from "../../../../utils/api.ts";
 
 export function Feed() {
     usePageTitle("Feed");
@@ -20,50 +21,23 @@ export function Feed() {
 
     useEffect(() => {
         const fetchPosts = async () => {
-            try {
-                const response = await fetch(
-                    import.meta.env.VITE_API_URL +
-                    "/api/v1/feed" +
-                    (feedContent === "connexions" ? "" : "/posts"),
-
-                    {
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem("token")}`,
-                        },
-                    }
-                );
-                if (!response.ok) {
-                    const { message } = await response.json();
-                    throw new Error(message);
-                }
-                const data = await response.json();
-                setPosts(data);
-            } catch (error) {
-                if (error instanceof Error) {
-                    setError(error.message);
-                } else {
-                    setError("An error occurred. Please try again later.");
-                }
-            }
+            await request<Post[]>({
+                endpoint: "/api/v1/feed" + (feedContent === "connexions" ? "" : "/posts"),
+                onSuccess: (data) => setPosts(data),
+                onFailure: (error) => setError(error),
+            });
         };
         fetchPosts();
     }, [feedContent]);
 
     const handlePost = async (content: string, picture: string) => {
-        const response = await fetch(import.meta.env.VITE_API_URL + "/api/v1/feed/posts", {
+        await request<Post>({
+            endpoint: "/api/v1/feed/posts",
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
             body: JSON.stringify({ content, picture }),
+            onSuccess: (data) => setPosts([data, ...posts]),
+            onFailure: (error) => setError(error),
         });
-        if (!response.ok) {
-            const { message } = await response.json();
-            throw new Error(message);
-        }
-        const data = await response.json();
-        setPosts([data, ...posts]);
     };
 
     return (
