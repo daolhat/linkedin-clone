@@ -4,7 +4,7 @@ import { timeAgo } from "../../utils/date";
 
 interface TimeAgoProps {
     date: string;
-    edited: boolean;
+    edited?: boolean;
 }
 
 export function TimeAgo({ date, edited }: TimeAgoProps) {

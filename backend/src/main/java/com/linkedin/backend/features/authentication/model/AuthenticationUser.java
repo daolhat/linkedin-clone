@@ -2,6 +2,7 @@ package com.linkedin.backend.features.authentication.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.linkedin.backend.features.feed.model.Post;
+import com.linkedin.backend.features.notifications.model.Notification;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -55,6 +56,22 @@ public class AuthenticationUser {
             orphanRemoval = true
     )
     private List<Post> posts;
+
+    @JsonIgnore
+    @OneToMany(
+            mappedBy = "recipient",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Notification> receivedNotification;
+
+    @JsonIgnore
+    @OneToMany(
+            mappedBy = "actor",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<Notification> actedNotification;
 
     public AuthenticationUser(String email, String password) {
         this.email = email;
@@ -224,7 +241,23 @@ public class AuthenticationUser {
         this.profilePicture = profilePicture;
     }
 
-//    public void setProfileComplete(Boolean profileComplete) {
-//        this.profileComplete = profileComplete;
-//    }
+    public void setProfileComplete(Boolean profileComplete) {
+        this.profileComplete = profileComplete;
+    }
+
+    public List<Notification> getReceivedNotification() {
+        return receivedNotification;
+    }
+
+    public void setReceivedNotification(List<Notification> receivedNotification) {
+        this.receivedNotification = receivedNotification;
+    }
+
+    public List<Notification> getActedNotification() {
+        return actedNotification;
+    }
+
+    public void setActedNotification(List<Notification> actedNotification) {
+        this.actedNotification = actedNotification;
+    }
 }

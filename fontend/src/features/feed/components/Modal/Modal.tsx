@@ -16,7 +16,6 @@ interface PostingModalProps {
 export function Modal({ setShowModal, showModal, onSubmit, content, picture, title }: PostingModalProps) {
 
     const [error, setError] = useState("");
-
     const [isLoading, setIsLoading] = useState(false);
 
     if (!showModal) return null;

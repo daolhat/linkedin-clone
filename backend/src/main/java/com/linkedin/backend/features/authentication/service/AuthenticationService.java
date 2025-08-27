@@ -31,11 +31,8 @@ public class AuthenticationService {
     @PersistenceContext
     private EntityManager entityManager;
 
-
-    public AuthenticationService(JsonWebToken jsonWebToken,
-                                 Encoder encoder,
-                                 AuthenticationUserRepository authenticationUserRepository,
-                                 EmailService emailService) {
+    public AuthenticationService(JsonWebToken jsonWebToken, Encoder encoder,
+                                 AuthenticationUserRepository authenticationUserRepository, EmailService emailService) {
         this.jsonWebToken = jsonWebToken;
         this.encoder = encoder;
         this.authenticationUserRepository = authenticationUserRepository;
@@ -82,16 +79,18 @@ public class AuthenticationService {
 
     public void validateEmailVerificationToken(String token, String email) {
         Optional<AuthenticationUser> user = authenticationUserRepository.findByEmail(email);
-        if (user.isPresent() && encoder.matches(token, user.get().getEmailVerificationToken())
-                && !user.get().getEmailVerificationTokenExpiryDate().isBefore(LocalDateTime.now())) {
+        if (user.isPresent() &&
+                encoder.matches(token, user.get().getEmailVerificationToken()) &&
+                !user.get().getEmailVerificationTokenExpiryDate().isBefore(LocalDateTime.now())) {
 
             user.get().setEmailVerified(true);
             user.get().setEmailVerificationToken(null);
             user.get().setEmailVerificationTokenExpiryDate(null);
             authenticationUserRepository.save(user.get());
 
-        } else if (user.isPresent() && encoder.matches(token, user.get().getEmailVerificationToken())
-                && user.get().getEmailVerificationTokenExpiryDate().isBefore(LocalDateTime.now())) {
+        } else if (user.isPresent() &&
+                encoder.matches(token, user.get().getEmailVerificationToken()) &&
+                user.get().getEmailVerificationTokenExpiryDate().isBefore(LocalDateTime.now())) {
 
             throw new IllegalArgumentException("Email verification token expired");
 
@@ -102,13 +101,11 @@ public class AuthenticationService {
 
 
     public AuthenticationUser getUser(String email) {
-        return authenticationUserRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        return authenticationUserRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
 
     public AuthenticationResponseBody register(AuthenticationRequestBody registerRequestBody) {
-
         AuthenticationUser user = authenticationUserRepository.save(
                 new AuthenticationUser(registerRequestBody.getEmail(), encoder.encode(registerRequestBody.getPassword()))
         );
@@ -170,16 +167,18 @@ public class AuthenticationService {
     public void resetPassword(String email, String newPassword, String token) {
         Optional<AuthenticationUser> user = authenticationUserRepository.findByEmail(email);
 
-        if (user.isPresent() && encoder.matches(token, user.get().getPasswordResetToken())
-                && !user.get().getPasswordResetTokenExpiryDate().isBefore(LocalDateTime.now())) {
+        if (user.isPresent() &&
+                encoder.matches(token, user.get().getPasswordResetToken()) &&
+                !user.get().getPasswordResetTokenExpiryDate().isBefore(LocalDateTime.now())) {
 
             user.get().setPasswordResetToken(null);
             user.get().setPasswordResetTokenExpiryDate(null);
             user.get().setPassword(encoder.encode(newPassword));
             authenticationUserRepository.save(user.get());
 
-        } else if (user.isPresent() && encoder.matches(token, user.get().getPasswordResetToken())
-                && user.get().getPasswordResetTokenExpiryDate().isBefore(LocalDateTime.now())) {
+        } else if (user.isPresent() &&
+                encoder.matches(token, user.get().getPasswordResetToken())&&
+                user.get().getPasswordResetTokenExpiryDate().isBefore(LocalDateTime.now())) {
 
             throw new IllegalArgumentException("Password reset token expired");
 

@@ -18,9 +18,7 @@ export function Profile({
 }: ProfileProps) {
 
     const { logout, user } = useAuthentication();
-
     const navigate = useNavigate();
-
     const ref = useRef<HTMLDivElement>(null);
 
 

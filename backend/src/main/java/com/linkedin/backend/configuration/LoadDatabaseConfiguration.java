@@ -9,7 +9,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -26,8 +25,6 @@ public class LoadDatabaseConfiguration {
     @Bean
     public CommandLineRunner initDatabase(AuthenticationUserRepository authenticationUserRepository, PostRepository postRepository) {
         return args -> {
-//            AuthenticationUser authenticationUser = new AuthenticationUser("nhat@example.com", encoder.encode("nhat12345"));
-//            authenticationUserRepository.save(authenticationUser);
             List<AuthenticationUser> users = createUsers(authenticationUserRepository);
             createPosts(postRepository, users);
         };
@@ -35,16 +32,16 @@ public class LoadDatabaseConfiguration {
 
     private List<AuthenticationUser> createUsers(AuthenticationUserRepository authenticationUserRepository) {
         List<AuthenticationUser> users = List.of(
-                createUser("nhat@example.com", "nhat", "Nhat", "Dao", "Developer", "CompanyOne",
+                createUser("nhat@example.com", "nhat", "Nhat", "Dao", "Developer", "FPT",
                         "Ha noi", "https://cdn.pixabay.com/photo/2025/06/19/07/59/allgau-9668453_640.jpg"),
-                createUser("namd@example.com", "namd", "Nam", "Nguyen", "Test", "CompanyTwo",
-                        "Ha noi", "https://cdn.pixabay.com/photo/2025/06/19/07/59/allgau-9668453_640.jpg"),
-                createUser("phuong@example.com", "phuong", "Phuong", "Le", "HR", "CompanyThree",
-                        "Ha noi", "https://cdn.pixabay.com/photo/2025/06/19/07/59/allgau-9668453_640.jpg"),
-                createUser("tung@example.com", "tung", "Tung", "Nguyen", "PM", "CompanyFour",
-                        "Ha noi", "https://cdn.pixabay.com/photo/2025/06/19/07/59/allgau-9668453_640.jpg"),
-                createUser("linh@example.com", "linh", "Linh", "Pham", "Data engineer", "CompanyFive",
-                        "Ha noi", "https://cdn.pixabay.com/photo/2025/06/19/07/59/allgau-9668453_640.jpg")
+                createUser("namd@example.com", "namd", "Nam", "Nguyen", "Test", "Viettel",
+                        "Ha noi", "https://cdn.pixabay.com/photo/2025/08/03/15/10/cat-9752539_640.jpg"),
+                createUser("phuong@example.com", "phuong", "Phuong", "Le", "HR", "Misa",
+                        "Ha noi", "https://cdn.pixabay.com/photo/2021/09/21/09/36/lobster-6642889_640.jpg"),
+                createUser("tung@example.com", "tung", "Tung", "Nguyen", "PM", "VNPT",
+                        "Ha noi", "https://cdn.pixabay.com/photo/2023/02/12/13/16/dog-7785066_640.jpg"),
+                createUser("linh@example.com", "linh", "Linh", "Pham", "Data engineer", "MB Bank",
+                        "Ha noi", "https://cdn.pixabay.com/photo/2025/08/04/14/58/tools-9754352_640.jpg")
         );
 
         authenticationUserRepository.saveAll(users);

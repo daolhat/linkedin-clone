@@ -22,13 +22,9 @@ interface CommentProps {
 export function Comment({ comment, deleteComment, editComment }: CommentProps) {
 
     const navigate = useNavigate();
-
     const [showActions, setShowActions] = useState(false);
-
     const [editing, setEditing] = useState(false);
-
     const [commentContent, setCommentContent] = useState(comment.content);
-
     const { user } = useAuthentication();
 
     return (
