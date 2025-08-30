@@ -2,6 +2,7 @@ package com.linkedin.backend.features.authentication.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.linkedin.backend.features.feed.model.Post;
+import com.linkedin.backend.features.messaging.model.Conversation;
 import com.linkedin.backend.features.notifications.model.Notification;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -50,53 +51,39 @@ public class AuthenticationUser {
     private Boolean profileComplete = false;
 
     @JsonIgnore
-    @OneToMany(
-            mappedBy = "author",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Post> posts;
 
     @JsonIgnore
-    @OneToMany(
-            mappedBy = "recipient",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notification> receivedNotification;
 
     @JsonIgnore
-    @OneToMany(
-            mappedBy = "actor",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "actor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notification> actedNotification;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Conversation> conversationAsAuthor;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Conversation> conversationAsAuthorAsRecipient;
+
+    public AuthenticationUser() {}
 
     public AuthenticationUser(String email, String password) {
         this.email = email;
         this.password = password;
     }
 
-    public AuthenticationUser() {}
-
     private void updateProfileCompletionStatus() {
         this.profileComplete = (this.firstName != null && this.lastName != null && this.company != null && this.position != null && this.location != null);
     }
 
-    public AuthenticationUser(Long id,
-                              String email,
-                              Boolean emailVerified,
-                              String emailVerificationToken,
-                              LocalDateTime emailVerificationTokenExpiryDate,
-                              String password,
-                              String passwordResetToken,
-                              LocalDateTime passwordResetTokenExpiryDate,
-                              String firstName,
-                              String lastName,
-                              String company,
-                              String position,
-                              String location) {
+    public AuthenticationUser(Long id, String email, Boolean emailVerified, String emailVerificationToken, LocalDateTime emailVerificationTokenExpiryDate,
+                              String password, String passwordResetToken, LocalDateTime passwordResetTokenExpiryDate,
+                              String firstName, String lastName, String company, String position, String location) {
         this.id = id;
         this.email = email;
         this.emailVerified = emailVerified;
@@ -259,5 +246,21 @@ public class AuthenticationUser {
 
     public void setActedNotification(List<Notification> actedNotification) {
         this.actedNotification = actedNotification;
+    }
+
+    public List<Conversation> getConversationAsAuthor() {
+        return conversationAsAuthor;
+    }
+
+    public void setConversationAsAuthor(List<Conversation> conversationAsAuthor) {
+        this.conversationAsAuthor = conversationAsAuthor;
+    }
+
+    public List<Conversation> getConversationAsAuthorAsRecipient() {
+        return conversationAsAuthorAsRecipient;
+    }
+
+    public void setConversationAsAuthorAsRecipient(List<Conversation> conversationAsAuthorAsRecipient) {
+        this.conversationAsAuthorAsRecipient = conversationAsAuthorAsRecipient;
     }
 }

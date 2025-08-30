@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/authentication")
 public class AuthenticationController {
@@ -79,6 +81,11 @@ public class AuthenticationController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "User does not have permission to update this profile.");
         }
         return authenticationService.updateUserProfile(id, firstName, lastName, company, position, location);
+    }
+
+    @GetMapping("/users")
+    public List<AuthenticationUser> getUsersWithoutAuthenticated(@RequestAttribute("authenticatedUser") AuthenticationUser user) {
+        return authenticationService.getUsersWithoutAuthenticated(user);
     }
 
 }

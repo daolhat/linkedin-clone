@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -222,5 +223,13 @@ public class AuthenticationService {
                     .executeUpdate();
             authenticationUserRepository.deleteById(userId);
         }
+    }
+
+    public List<AuthenticationUser> getUsersWithoutAuthenticated(AuthenticationUser user) {
+        return authenticationUserRepository.findAllByIdNot(user.getId());
+    }
+
+    public AuthenticationUser getUserById(Long userId) {
+        return authenticationUserRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 }
