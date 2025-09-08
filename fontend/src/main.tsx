@@ -13,6 +13,8 @@ import { ApplicationLayout } from './components/ApplicationLayout/ApplicationLay
 import { Profile } from './features/authentication/pages/Profile/Profile'
 import { Notifications } from './features/feed/pages/Notification/Notifications'
 import { PostPage } from './features/feed/pages/Post/Post'
+import { Messaging } from './features/messaging/pages/Messaging/Messaging'
+import { Conversation } from './features/messaging/pages/Conversation/Conversation'
 
 
 const router = createBrowserRouter([
@@ -42,7 +44,13 @@ const router = createBrowserRouter([
           },
           {
             path: "messaging",
-            element: <div>Messaging</div>,
+            element: <Messaging />,
+            children: [
+              {
+                path: "conversations/:id",
+                element: <Conversation />,
+              },
+            ],
           },
           {
             path: "notifications",

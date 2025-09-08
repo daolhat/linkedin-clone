@@ -4,7 +4,7 @@ import { Input } from "../../../../components/Input/Input";
 import { Button } from "../../../../components/Button/Button";
 
 
-interface PostingModalProps {
+interface IPostingModalProps {
     showModal: boolean;
     content?: string;
     picture?: string;
@@ -13,7 +13,7 @@ interface PostingModalProps {
     title: string;
 }
 
-export function Modal({ setShowModal, showModal, onSubmit, content, picture, title }: PostingModalProps) {
+export function Modal({ setShowModal, showModal, onSubmit, content, picture, title }: IPostingModalProps) {
 
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);

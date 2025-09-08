@@ -10,15 +10,10 @@ import { usePageTitle } from "../../../../hooks/usePageTitle";
 
 export function Login() {
     const [errorMessage, setErrorMessage] = useState("");
-
     const [isLoading, setIsLoading] = useState(false);
-
     const { login } = useAuthentication();
-
     const navigate = useNavigate();
-
     const location = useLocation();
-
     usePageTitle("Login");
 
     const doLogin = async (e: FormEvent<HTMLFormElement>) => {
@@ -52,13 +47,11 @@ export function Login() {
                     <Input type="password" id="password" label="Password" onFocus={() => setErrorMessage("")} />
                     {errorMessage && <p className={classes.error}>{errorMessage}</p>}
                     <Button type="submit" disabled={isLoading}>
-                        
                         {
                             isLoading ? "..." : "Sign in"
                         }
-
                     </Button>
-                    <Link to="/authentication/request-password-reset" >Forgot password?</Link>
+                    <Link to="/authentication/request-password-reset">Forgot password?</Link>
                 </form>
                 <Seperator>Or</Seperator>
                 <div className={classes.register}>

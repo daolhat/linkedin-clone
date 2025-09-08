@@ -1,12 +1,13 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import classes from "./Header.module.scss";
 import { Input } from "../Input/Input";
 import { useAuthentication } from "../../features/authentication/contexts/AuthenticationContextProvider";
 import { useEffect, useState } from "react";
 import { Profile } from "./components/Profile/Profile";
 import { useWebSocket } from "../../features/ws/WebSocketContextProvider";
-import type { Notification } from "../../features/feed/pages/Notification/Notifications";
+import type { INotification } from "../../features/feed/pages/Notification/Notifications";
 import { request } from "../../utils/api";
+import type { IConversation } from "../../features/messaging/components/Conversations/Conversations";
 
 export function Header() {
 
@@ -16,10 +17,20 @@ export function Header() {
     const [showNavigationMenu, setShowNavigationMenu] = useState(
         window.innerWidth > 1080 ? true : false
     );
-    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [notifications, setNotifications] = useState<INotification[]>([]);
     const nonReadNotificationCount = notifications.filter(
         (notification) => !notification.read
     ).length;
+
+    const location = useLocation();
+    const [conversations, setConversations] = useState<IConversation[]>([]);
+    const nonReadMessagesCount = conversations.reduce(
+        (acc, conversation) =>
+            acc +
+            conversation.messages.filter((message) => message.sender.id !== user?.id && !message.isRead)
+                .length,
+        0
+    );
 
     useEffect(() => {
         const handleResize = () => {
@@ -31,12 +42,20 @@ export function Header() {
     }, []);
 
     useEffect(() => {
-        request<Notification[]>({
+        request<INotification[]>({
             endpoint: "/api/v1/notifications",
             onSuccess: setNotifications,
             onFailure: (error) => console.log(error),
         });
     }, []);
+
+    useEffect(() => {
+        request<IConversation[]>({
+            endpoint: "/api/v1/messaging/conversations",
+            onSuccess: (data) => setConversations(data),
+            onFailure: (error) => console.log(error),
+        });
+    }, [location.pathname])
 
     useEffect(() => {
         const subscribtion = webSocketClient?.subscribe(
@@ -55,6 +74,23 @@ export function Header() {
         return () => subscribtion?.unsubscribe();
     }, [user?.id, webSocketClient]);
 
+    useEffect(() => {
+        const subscribtion = webSocketClient?.subscribe(
+            `/topic/users/${user?.id}/conversations`,
+            (message) => {
+                const conversation = JSON.parse(message.body);
+                setConversations((prevConversations) => {
+                    const index = prevConversations.findIndex((c) => c.id === conversation.id);
+                    if (index === -1) {
+                        if (conversation.author.id === user?.id) return prevConversations;
+                        return [conversation, ...prevConversations];
+                    }
+                    return prevConversations.map((c) => (c.id === conversation.id ? conversation : c));
+                });
+            }
+        );
+        return () => subscribtion?.unsubscribe();
+    }, [user?.id, webSocketClient]);
 
     return (
         <header className={classes.root}
@@ -155,7 +191,7 @@ export function Header() {
                                     <span>Jobs</span>
                                 </NavLink>
                             </li>
-                            <li>
+                            <li className={classes.messaging}>
                                 <NavLink to="/messaging"
                                     className={({ isActive }) => (isActive ? classes.active : "")}
                                     onClick={() => {
@@ -173,7 +209,13 @@ export function Header() {
                                     >
                                         <path d="M16 4H8a7 7 0 000 14h4v4l8.16-5.39A6.78 6.78 0 0023 11a7 7 0 00-7-7zm-8 8.25A1.25 1.25 0 119.25 11 1.25 1.25 0 018 12.25zm4 0A1.25 1.25 0 1113.25 11 1.25 1.25 0 0112 12.25zm4 0A1.25 1.25 0 1117.25 11 1.25 1.25 0 0116 12.25z"></path>
                                     </svg>
-                                    <span>Messaging</span>
+                                    <div>
+                                        {nonReadMessagesCount > 0 && !location.pathname.includes("messaging") ? (
+                                            <span className={classes.badge}>{nonReadMessagesCount}</span>
+                                        ) : null}
+                                        <span>Messaging</span>
+                                    </div>
+
                                 </NavLink>
                             </li>
                             <li className={classes.notifications}>

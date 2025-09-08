@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../../../../components/Button/Button";
 import { Input } from "../../../../components/Input/Input";
 import { Box } from "../../components/Box/Box";
-import { useAuthentication, type User } from "../../contexts/AuthenticationContextProvider";
+import { useAuthentication, type IUser } from "../../contexts/AuthenticationContextProvider";
 import classes from "./Profile.module.scss";
 import { request } from "../../../../utils/api";
 export function Profile() {
@@ -32,7 +32,7 @@ export function Profile() {
             setError("Please fill in your location.");
             return;
         }
-        await request<User>({
+        await request<IUser>({
             endpoint: `/api/v1/authentication/profile/${user?.id}?firstName=${data.firstName}&lastName=${data.lastName}&company=${data.company}&position=${data.position}&location=${data.location}`,
             method: "PUT",
             body: JSON.stringify(data),

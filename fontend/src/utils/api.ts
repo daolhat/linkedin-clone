@@ -1,6 +1,6 @@
 const BASE_URL = import.meta.env.VITE_API_URL;
 
-interface RequestParam<T> {
+interface IRequestParam<T> {
     endpoint: string;
     method?: "GET" | "POST" | "PUT" | "DELETE";
     body?: BodyInit;
@@ -14,7 +14,7 @@ export const request = async <T>({
     body,
     onSuccess,
     onFailure,
-}: RequestParam<T>): Promise<void> => {
+}: IRequestParam<T>): Promise<void> => {
     try {
         const response = await fetch(`${BASE_URL}${endpoint}`, {
             method,

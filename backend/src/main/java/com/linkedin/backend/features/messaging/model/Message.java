@@ -26,7 +26,7 @@ public class Message {
 
     private String content;
 
-    private Boolean isRead;
+    private Boolean isRead = false;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

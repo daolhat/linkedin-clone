@@ -3,27 +3,27 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "../../../../components/Input/Input";
 import {
     useAuthentication,
-    type User,
+    type IUser,
 } from "../../../authentication/contexts/AuthenticationContextProvider";
-import { Comment } from "../Comment/Comment";
+import { Comment, type IComment } from "../Comment/Comment";
 import { Modal } from "../Modal/Modal";
 import classes from "./Post.module.scss";
 import { TimeAgo } from "../TimeAgo/TimeAgo";
 import { request } from "../../../../utils/api";
 import { useWebSocket } from "../../../ws/WebSocketContextProvider";
 
-export interface Post {
+export interface IPost {
     id: number;
     content: string;
-    author: User;
+    author: IUser;
     picture?: string;
     creationDate: string;
     updatedDate?: string;
 }
 
 interface PostProps {
-    post: Post;
-    setPosts: Dispatch<SetStateAction<Post[]>>;
+    post: IPost;
+    setPosts: Dispatch<SetStateAction<IPost[]>>;
 }
 
 export function Post({ post, setPosts }: PostProps) {
@@ -33,15 +33,15 @@ export function Post({ post, setPosts }: PostProps) {
     const { user } = useAuthentication();
     const [showMenu, setShowMenu] = useState(false);
     const [editing, setEditing] = useState(false);
-    const [comments, setComments] = useState<Comment[]>([]);
-    const [likes, setLikes] = useState<User[]>([]);
+    const [comments, setComments] = useState<IComment[]>([]);
+    const [likes, setLikes] = useState<IUser[]>([]);
     const webSocketClient = useWebSocket();
     const [postLiked, setPostLiked] = useState<boolean | undefined>(undefined);
 
 
     useEffect(() => {
         const fetchComments = async () => {
-            await request<Comment[]>({
+            await request<IComment[]>({
                 endpoint: `/api/v1/feed/posts/${post.id}/comments`,
                 onSuccess: (data) => setComments(data),
                 onFailure: (error) => {
@@ -54,7 +54,7 @@ export function Post({ post, setPosts }: PostProps) {
 
     useEffect(() => {
         const fetchLikes = async () => {
-            await request<User[]>({
+            await request<IUser[]>({
                 endpoint: `/api/v1/feed/posts/${post.id}/likes`,
                 onSuccess: (data) => {
                     setLikes(data);
@@ -74,7 +74,7 @@ export function Post({ post, setPosts }: PostProps) {
             (message) => {
                 const likes = JSON.parse(message.body);
                 setLikes(likes);
-                setPostLiked(likes.some((like: User) => like.id === user?.id));
+                setPostLiked(likes.some((like: IUser) => like.id === user?.id));
             }
         );
         return () => subscription?.unsubscribe();
@@ -112,7 +112,7 @@ export function Post({ post, setPosts }: PostProps) {
 
 
     const like = async () => {
-        await request<Post>({
+        await request<IPost>({
             endpoint: `/api/v1/feed/posts/${post.id}/like`,
             method: "PUT",
             onSuccess: () => {},
@@ -128,7 +128,7 @@ export function Post({ post, setPosts }: PostProps) {
         if (!content) {
             return;
         }
-        await request<Post>({
+        await request<IPost>({
             endpoint: `/api/v1/feed/posts/${post.id}/comments`,
             method: "POST",
             body: JSON.stringify({ content }),
@@ -155,7 +155,7 @@ export function Post({ post, setPosts }: PostProps) {
 
 
     const editComment = async (id: number, content: string) => {
-        await request<Comment>({
+        await request<IComment>({
             endpoint: `/api/v1/feed/comments/${id}`,
             method: "PUT",
             body: JSON.stringify({ content }),
@@ -192,7 +192,7 @@ export function Post({ post, setPosts }: PostProps) {
 
 
     const editPost = async (content: string, picture: string) => {
-        await request<Post>({
+        await request<IPost>({
             endpoint: `/api/v1/feed/posts/${post.id}`,
             method: "PUT",
             body: JSON.stringify({ content, picture }),

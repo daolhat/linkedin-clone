@@ -5,7 +5,7 @@ import { Button } from "../../../Button/Button";
 import { Link, useNavigate } from "react-router-dom";
 
 
-interface ProfileProps {
+interface IProfileProps {
     setShowProfileMenu: Dispatch<SetStateAction<boolean>>;
     setShowNavigationMenu: Dispatch<SetStateAction<boolean>>;
     showProfileMenu: boolean;
@@ -15,7 +15,7 @@ export function Profile({
     showProfileMenu,
     setShowProfileMenu,
     setShowNavigationMenu,
-}: ProfileProps) {
+}: IProfileProps) {
 
     const { logout, user } = useAuthentication();
     const navigate = useNavigate();

@@ -1,25 +1,25 @@
 import { useNavigate } from "react-router-dom";
-import { useAuthentication, type User } from "../../../authentication/contexts/AuthenticationContextProvider";
+import { useAuthentication, type IUser } from "../../../authentication/contexts/AuthenticationContextProvider";
 import classes from "./Comment.module.scss";
 import { useState } from "react";
 import { Input } from "../../../../components/Input/Input";
 import { TimeAgo } from "../TimeAgo/TimeAgo";
 
-export interface Comment {
+export interface IComment {
     id: number;
     content: string;
-    author: User;
+    author: IUser;
     creationDate: string;
     updatedDate?: string;
 }
 
-interface CommentProps {
-    comment: Comment;
+interface ICommentProps {
+    comment: IComment;
     deleteComment: (commentId: number) => Promise<void>;
     editComment: (commentId: number, content: string) => Promise<void>;
 }
 
-export function Comment({ comment, deleteComment, editComment }: CommentProps) {
+export function Comment({ comment, deleteComment, editComment }: ICommentProps) {
 
     const navigate = useNavigate();
     const [showActions, setShowActions] = useState(false);
